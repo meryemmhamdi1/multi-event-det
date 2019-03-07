@@ -24,3 +24,4 @@ if __name__ == '__main__':
         print("******** Language: "+language+ " Number of Processed files is: ", files_num)
 
         events_list_lang.update({language: events_lang})
+

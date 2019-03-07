@@ -1,4 +1,13 @@
 .idea/*
-DataPreprocessor/Icon
+DataModule/Icon
 EventDetection/Icon
 Icon
+.ipynb_checkpoints/*
+DataModule/.ipynb_checkpoints/*
+EventDetectionModels/.ipynb_checkpoints/*
+EventDetectionModels/NNModels/Icon
+DataModule/Notebooks/Icon
+DataModule/qi_filelist/Icon
+DataModule/qi_filelist/Chinese/Icon
+DataModule/qi_filelist/English/Icon
+DataModule/qi_filelist/Arabic/Icon

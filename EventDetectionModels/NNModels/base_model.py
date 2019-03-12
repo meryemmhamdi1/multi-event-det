@@ -1,3 +1,9 @@
+"""
+Base Interface for BiLSTMCRFChar Model defining functions for initializing, saving, restoring and closing tf session
+and generic training and evaluating the model. This Code is adapted from Guillaume Genthial's code:
+https://github.com/guillaumegenthial/sequence_tagging
+
+"""
 import os
 import tensorflow as tf
 from .model_utils import *

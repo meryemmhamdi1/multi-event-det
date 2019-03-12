@@ -73,11 +73,11 @@ if __name__ == '__main__':
         write_vocab(vocab_words, words_vocab_file)
         write_vocab(vocab_chars, char_vocab_file)
         write_vocab(vocab_tags, tags_vocab_file)
-    else:
-        print("Loading from files", words_vocab_file)
-        vocab_words = load_vocab(words_vocab_file)
-        vocab_chars = load_vocab(char_vocab_file)
-        vocab_tags = load_vocab(tags_vocab_file)
+
+    print("Loading from files", words_vocab_file)
+    vocab_words = load_vocab(words_vocab_file)
+    vocab_chars = load_vocab(char_vocab_file)
+    vocab_tags = load_vocab(tags_vocab_file)
 
     # get pre-trained embeddings
     print("Get pre-trained embeddings >>>>>")

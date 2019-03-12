@@ -1,6 +1,8 @@
-import tensorflow as tf
-from .model_utils import *
-from DataModule.data_utils import *
+"""
+BiLSTMCRFChar Model defining functions for defining tf graph. This Code is adapted from Guillaume Genthial's code:
+https://github.com/guillaumegenthial/sequence_tagging
+
+"""
 from .base_model import *
 
 

@@ -1,4 +1,6 @@
 .idea/*
+.DS_Store
+DataModule/.DS_Store
 DataModule/Icon
 EventDetection/Icon
 Icon
@@ -11,3 +13,7 @@ DataModule/qi_filelist/Icon
 DataModule/qi_filelist/Chinese/Icon
 DataModule/qi_filelist/English/Icon
 DataModule/qi_filelist/Arabic/Icon
+DataModule/__pycache__/*.pyc
+__pycache__/*.pyc
+__pycache__/*
+**/Icon

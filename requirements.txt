@@ -1,0 +1,6 @@
+pycorenlp==0.3.0
+tensorflow==1.12.0
+tqdm==4.31.1
+nltk==3.4
+numpy==1.14.6
+scikit_learn==0.20.3

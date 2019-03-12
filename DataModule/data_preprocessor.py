@@ -1,11 +1,21 @@
 import glob
 import xml.etree.ElementTree as ET
-from data_utils import *
+from .data_utils import *
+from .ace_utils import *
 from tqdm import tqdm
 from get_args import *
 import os
 import json
 from nltk.tokenize import word_tokenize
+from nltk import sent_tokenize
+from difflib import SequenceMatcher
+
+import os
+print("Current location:", os.getcwd())
+
+
+def similar(a, b):
+    return SequenceMatcher(None, a, b).ratio()
 
 
 def merge_two_dicts(x, y):
@@ -46,15 +56,14 @@ class DataPreprocessor(object):
                         end_off = offset_end_dic[list(offset_start_dic.keys())[0]] + 1
                     ent = Entity(entity_id, text, entity_type, phrase_type, start_off, end_off)
                     entities.append(ent)
-
                 except:
-                    print("Problematic sentence:", sent)
-                    print("words: ", words)
-                    print("offset_start_dic:", offset_start_dic)
-                    print("offset_end_dic:", offset_end_dic)
-                    print("entity:", text)
-                    print("start - scope_start:", start - scope_start)
-                    print("end - scope_start:", end - scope_start)
+                    #print("Problematic sentence:", sent)
+                    #print("words: ", words)
+                    #print("offset_start_dic:", offset_start_dic)
+                    #print("offset_end_dic:", offset_end_dic)
+                    #print("entity:", text)
+                    #print("start - scope_start:", start - scope_start)
+                    #print("end - scope_start:", end - scope_start)
                     continue
 
         return entities
@@ -77,12 +86,6 @@ class DataPreprocessor(object):
                         extent = chil2.text.replace("&", "&amp;")
                         extent_start = int(chil2.attrib["START"])
                         extent_end = int(chil2.attrib["END"])
-                        sent = Sentence(extent, extent_start, extent_end)
-                        depParser = DependencyParser(sent)
-
-                        #print("sent:", sent)
-                        penn_treebank, triples, words, pos_tags, offset_start_dic, offset_end_dic, words_dict = \
-                            depParser.find_dep_words_pos_offsets(extent)
 
                 ## SCOPE USED AS SENTENCE
                 elif child.tag == "ldc_scope":
@@ -90,13 +93,19 @@ class DataPreprocessor(object):
                         scope = chil2.text
                         scope_start = int(chil2.attrib["START"])
                         scope_end = int(chil2.attrib["END"])
+                        sent = Sentence(scope, scope_start, scope_end)
+                        depParser = DependencyParser(sent)
+
+                        #print("sent:", sent)
+                        penn_treebank, triples, words, pos_tags, offset_start_dic, offset_end_dic, words_dict = \
+                            depParser.find_dep_words_pos_offsets(scope)
 
                 ## TRIGGER EXTRACTION
                 elif child.tag == "anchor":
                     for chil2 in child:
                         trig_text = chil2.text
-                        start = int(chil2.attrib["START"]) - extent_start
-                        end = int(chil2.attrib["END"]) - extent_start
+                        start = int(chil2.attrib["START"]) - scope_start
+                        end = int(chil2.attrib["END"]) - scope_start
 
                         try:
 
@@ -110,13 +119,13 @@ class DataPreprocessor(object):
                                 trig_end = offset_end_dic[list(offset_start_dic.keys())[0]] + 1
 
                         except:
-                            print("Problematic sentence:", sent)
-                            print("words: ", words)
-                            print("offset_start_dic:", offset_start_dic)
-                            print("offset_end_dic:", offset_end_dic)
-                            print("trig_text:", trig_text)
-                            print("start:", start)
-                            print("end:", end)
+                            #print("Problematic sentence:", sent)
+                            #print("words: ", words)
+                            #print("offset_start_dic:", offset_start_dic)
+                            #print("offset_end_dic:", offset_end_dic)
+                            #print("trig_text:", trig_text)
+                            #print("start:", start)
+                            #print("end:", end)
                             trig_start = -1
                             trig_end = -1
                             continue
@@ -125,7 +134,7 @@ class DataPreprocessor(object):
             entities = []
             ent_id_role_dict = {}
             for entity in root.iter('entity'):
-                ents = self.extract_entity_info(entity, extent_start, extent_end, sent, words, offset_start_dic, offset_end_dic)
+                ents = self.extract_entity_info(entity, scope_start, scope_end, sent, words, offset_start_dic, offset_end_dic)
                 entities.extend(ents)
                 if len(ents) > 0:
                     ent_id_role_dict.update({ents[0].id_: ents[0].entity_type})
@@ -137,8 +146,8 @@ class DataPreprocessor(object):
                 for child in argument:
                     for chil2 in child:
                         arg_text = chil2.text
-                        start = int(chil2.attrib["START"]) - extent_start
-                        end = int(chil2.attrib["END"]) - extent_start
+                        start = int(chil2.attrib["START"]) - scope_start
+                        end = int(chil2.attrib["END"]) - scope_start
 
                         try:
                             try:
@@ -160,11 +169,11 @@ class DataPreprocessor(object):
 
                             arguments.append(arg)
                         except:
-                            print("Problematic sentence:", sent)
-                            print("words: ", words)
-                            print("offset_start_dic:", offset_start_dic)
-                            print("offset_end_dic:", offset_end_dic)
-                            print("argument:", arg_text)
+                            #print("Problematic sentence:", sent)
+                            #print("words: ", words)
+                            #print("offset_start_dic:", offset_start_dic)
+                            #print("offset_end_dic:", offset_end_dic)
+                            #print("argument:", arg_text)
                             continue
 
         ev = Event(event_id, mention_id, event_type, subtype, modality, polarity, genericity, tense, extent, extent_start, extent_end,
@@ -190,12 +199,6 @@ class DataPreprocessor(object):
                         extent = chil2.text.replace("&", "&amp;")
                         extent_start = int(chil2.attrib["START"])
                         extent_end = int(chil2.attrib["END"])
-                        sent = Sentence(extent, extent_start, extent_end)
-                        depParser = DependencyParser(sent)
-
-                        #print("sent:", sent)
-                        penn_treebank, triples, words, pos_tags, offset_start_dic, offset_end_dic, words_dict = \
-                            depParser.find_dep_words_pos_offsets(extent)
 
                 ## SCOPE USED AS SENTENCE
                 elif child.tag == "ldc_scope":
@@ -203,13 +206,18 @@ class DataPreprocessor(object):
                         scope = chil2.text
                         scope_start = int(chil2.attrib["START"])
                         scope_end = int(chil2.attrib["END"])
+                        sent = Sentence(scope, scope_start, scope_end)
+                        depParser = DependencyParser(sent)
+
+                        penn_treebank, triples, words, pos_tags, offset_start_dic, offset_end_dic, words_dict = \
+                            depParser.find_dep_words_pos_offsets(scope)
 
                 ## TRIGGER EXTRACTION
                 elif child.tag == "anchor":
                     for chil2 in child:
                         trig_text = chil2.text
-                        trig_start = int(chil2.attrib["START"]) - extent_start
-                        trig_end = int(chil2.attrib["END"]) - extent_start
+                        trig_start = int(chil2.attrib["START"]) - scope_start
+                        trig_end = int(chil2.attrib["END"]) - scope_start
 
             ## Looking at entity mentions with that same event
             entities = []
@@ -227,8 +235,8 @@ class DataPreprocessor(object):
                 for child in argument:
                     for chil2 in child:
                         arg_text = chil2.text
-                        arg_start = int(chil2.attrib["START"]) - extent_start
-                        arg_end = int(chil2.attrib["END"]) - extent_start
+                        arg_start = int(chil2.attrib["START"]) - scope_start
+                        arg_end = int(chil2.attrib["END"]) - scope_start
 
                         if "-".join(arg_id.split("-")[:-1]) in ent_id_role_dict:
                             type_ = ent_id_role_dict["-".join(arg_id.split("-")[:-1])]
@@ -245,22 +253,37 @@ class DataPreprocessor(object):
 
         return sent, ev, penn_treebank, triples, words, pos_tags
 
-    def extract_doc_info(self, root):
+    def extract_doc_info(self, file_name):
+        #print("Processing:", file_name)
+        lines = []
+        with open(file_name+".sgm", "r") as file:
+            for line in file:
+                lines.append(line.replace("&", "&amp;"))
+
+        with open(file_name+"_modified.sgm", "w") as file:
+            for line in lines:
+                file.write(line)
+
+        tree = ET.parse(file_name+"_modified.sgm", ET.XMLParser(encoding='utf-8'))
+        root = tree.getroot()
         for docid in root.iter('DOCID'):
             doc_id = docid.text
 
-        for doctype in root.iter('DOCTYPE'):
-            source = doctype.attrib['SOURCE']
+        try:
+            for doctype in root.iter('DOCTYPE'):
+                source = doctype.attrib['SOURCE']
+        except:
+            source = None
 
         for datetime in root.iter('DATETIME'):
             datetime = datetime.text
 
-        turns = []
-        for _ in root.iter('TURN'):
-            for sp in root.iter('SPEAKER'):
-                turns.append(sp.tail)
+        for text in root.iter('TEXT'):
+            #for sp in root.iter('SPEAKER'):
+            #turns.append(sp.tail)
+            turns = text.text
 
-        return Document(doc_id, source, datetime, turns)
+        return ACEDocument(doc_id, source, datetime, turns)
 
     def extract_event_info_v1(self, event):
         event_id = event.attrib["ID"]
@@ -328,12 +351,13 @@ class DataPreprocessor(object):
 
     def extract_from_xml(self, mode):
         events = {}
-        with open(self.splits_file_path+ mode) as file:
+        with open(self.splits_file_path + mode) as file:
             files = file.read().splitlines()
         files_processed = 0
         for file in tqdm(files):
             # Get the event + argument annotation
             file_name = self.data_path + self.language + "/" + file + ".apf.xml"
+            #print(file_name)
             files_processed += 1
             tree = ET.parse(file_name, ET.XMLParser(encoding='utf-8'))
             root = tree.getroot()
@@ -348,9 +372,21 @@ class DataPreprocessor(object):
                     ev_list.append(ev)
                     events[sent.text]["events"] = ev_list
 
-            #non_events = self.extract_doc_info()
+            non_events_sent = []
+            doc = self.extract_doc_info(self.data_path + self.language + "/" + file)
+            sents = sent_tokenize(doc.text)
+            #print("events:", events.keys())
+            for sent in sents:
+                flag = False
+                for sent2 in events:
+                    if similar(sent, sent2) > 0.8:
+                        flag = True
+                if not flag:
+                    non_events_sent.append(sent)
 
-        return events, files_processed
+            #print("non_events:", non_events_sent)
+
+        return events, non_events_sent, files_processed
 
     def using_jmee_split(self):
         files_splits = {}
@@ -404,15 +440,15 @@ class DataPreprocessor(object):
         if not os.path.exists(pre_dir + lang + "/"):
             os.makedirs(pre_dir + lang + "/")
 
-        print("File to Save")
-        print(pre_dir + lang + "/" + mode + '.json')
+        #print("File to Save")
+        #print(pre_dir + lang + "/" + mode + '.json')
 
         with open(pre_dir + lang + "/" + mode + '.json', 'w') as outfile:
             json.dump(data_json, outfile)
 
         return data_json
 
-    def get_triggers_bio(self, events, lang, mode, pre_dir):
+    def get_triggers_bio(self, events, non_events_sent, lang, mode, pre_dir, include_neg):
         new_trig_dict = {}
         for sent in events.keys():
             triggers = []
@@ -423,7 +459,7 @@ class DataPreprocessor(object):
             triggers.sort(key=lambda x: x.start, reverse=False)
             end = 0
             for trig in triggers:
-                if trig.start >= end:
+                if trig.start > end:
                     new_triggers.append(trig)
                 end = trig.end
             new_trig_dict.update({sent: new_triggers})
@@ -455,10 +491,19 @@ class DataPreprocessor(object):
             words.extend([(word, "O") for word in word_tokenize(sent[start:])])
             words_split.append(words)
 
-        if not os.path.exists(pre_dir + "TriggerIdentification/" + lang + "/"):
-            os.makedirs(pre_dir + "TriggerIdentification/" + lang + "/")
+        if include_neg:
+            for sent in non_events_sent:
+                words_split.append([(word, "O") for word in word_tokenize(sent)])
 
-        with open(pre_dir + "TriggerIdentification/" + lang + "/"+mode+".txt", "w") as file:
+            path = mode+"_with_neg_eg.txt"
+        else:
+            path = mode+"_wout_neg_eg.txt"
+
+        root_path = pre_dir + "TriggerIdentification/" + lang + "/"
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
+
+        with open(root_path+path, "w") as file:
             for sent in words_split:
                 for word, ann in sent:
                     file.write(word + " " + ann+"\n")
@@ -466,7 +511,7 @@ class DataPreprocessor(object):
 
         return words_split
 
-    def get_arguments_bio(self, events, lang, mode, pre_dir):
+    def get_arguments_bio(self, events, non_events_sent, lang, mode, pre_dir, include_neg):
         new_arguments_dict = {}
         for sent in events.keys():
             new_arguments = []
@@ -478,7 +523,7 @@ class DataPreprocessor(object):
 
             end = 0
             for argument in events_arg:
-                if argument.start >= end:
+                if argument.start > end:
                     new_arguments.append(argument)
                 end = argument.end
 
@@ -513,16 +558,117 @@ class DataPreprocessor(object):
 
             words_split.append(words)
 
-        if not os.path.exists(pre_dir + "ArgumentIdentification/" + lang + "/"):
-            os.makedirs(pre_dir + "ArgumentIdentification/" + lang + "/")
+        if include_neg:
+            for sent in non_events_sent:
+                words_split.append([(word, "O") for word in word_tokenize(sent)])
 
-        with open(pre_dir + "ArgumentIdentification/" + lang + "/"+mode+".txt", "w") as file:
+            path = mode+"_with_neg_eg.txt"
+        else:
+            path = mode+"_wout_neg_eg.txt"
+
+        root_path = pre_dir + "ArgumentIdentification/" + lang + "/"
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
+
+        with open(root_path +path, "w") as file:
             for sent in words_split:
                 for word, ann in sent:
                     file.write(word + " " + ann+"\n")
                 file.write("\n")
             
         return words_split
+
+    def get_joint_dataset(self, events, non_events_sent, lang, mode, pre_dir, include_neg):
+        new_trig_arg_dict = {}
+        for sent in events.keys():
+            events_trig_arg = []
+            for event in events[sent]["events"]:
+                events_trig_arg.append(Trigger(event.trig_start, event.trig_text, event.trig_end, event.event_id,
+                                        event.type_+":"+event.subtype))
+                events_trig_arg.extend(event.arguments)
+
+            events_trig_arg.sort(key=lambda x: x.start, reverse=False)
+
+            new_trig_arg = []
+            end = 0
+            for trig in events_trig_arg:
+                if trig.start > end:
+                    new_trig_arg.append(trig)
+                end = trig.end
+            new_trig_arg_dict.update({sent: new_trig_arg})
+
+        words_split = []
+        trig_split = []
+        arg_split = []
+        for sent in tqdm(new_trig_arg_dict):
+            start = 0
+            word_list = []
+            trig_list = []
+            arg_list = []
+            for ent in new_trig_arg_dict[sent]:
+                end = ent.start
+
+                ### Tokenize that part that doesn't have to do with triggers and annotate each word as 'O'
+                words = word_tokenize(sent[start:end])
+                word_list.extend(words)
+                trig_list.extend(["O" for _ in words])
+                arg_list.extend(["O" for _ in words])
+
+                ### Tokenize trigger part and annotate each word as 'B' or 'I'
+                start = ent.start
+                end = ent.end+1
+                tok = word_tokenize(sent[start:end])
+
+                flag = True
+                for word in tok:
+                    word_list.append(word)
+                    if isinstance(ent, Trigger):
+                        if flag:
+                            flag = False
+                            trig_list.append("B-" + ent.event_type)
+                        else:
+                            trig_list.append("I-" + ent.event_type)
+                        arg_list.append("O")
+
+                    else:
+                        if flag:
+                            flag = False
+                            arg_list.append("B-" + ent.role)
+                        else:
+                            arg_list.append("I-" + ent.role)
+                        trig_list.append("O")
+
+                start = ent.end + 1
+
+            ## Tokenize what is left
+            words = word_tokenize(sent[start:])
+            word_list.extend(words)
+            trig_list.extend(["O" for _ in words])
+            arg_list.extend(["O" for _ in words])
+
+            words_split.append(word_list)
+            trig_split.append(trig_list)
+            arg_split.append(arg_list)
+
+        if include_neg:
+            for sent in non_events_sent:
+                words_split.append([(word, "O") for word in word_tokenize(sent)])
+
+            path = mode+"_with_neg_eg.txt"
+        else:
+            path = mode+"_wout_neg_eg.txt"
+
+        root_path = pre_dir + "Joint/" + lang + "/"
+        if not os.path.exists(root_path):
+            os.makedirs(root_path)
+
+        with open(root_path+path, "w") as file:
+            for i, sent in enumerate(words_split):
+                for j, word in enumerate(sent):
+                    file.write(word + " " + trig_split[i][j] + " " + arg_split[i][j]+"\n")
+                file.write("\n")
+
+        return words_split, trig_list, arg_split
 
 
 if __name__ == '__main__':
@@ -536,24 +682,23 @@ if __name__ == '__main__':
 
     data_path_dir = args.root_dir + args.data_ace_path
 
-    if args.task == "jmee":
+    if args.method == "jmee":
         pre_dir = args.root_dir + args.pre_dir + "ace-05-splits-new/"
     else:
         pre_dir = args.root_dir + args.pre_dir + "tagging-new/"
 
     events_lang = {}
     for language in languages:
-        if language == "English":
-            if args.split_option == "jmee":
-                splits_file_path = args.jmee_splits
-            else:
-                splits_file_path = args.doc_splits + language
+        if language == "English" and args.split_option == "jmee":
+            splits_file_path = args.jmee_splits
+        else:
+            splits_file_path = args.doc_splits + language + "/"
         data_process = DataPreprocessor(data_path_dir, splits_file_path, language)
 
         files_num = 0
         for split in ["train", "dev", "test"]:
             #print("Processing ", split)
-            events, files_processed = data_process.extract_from_xml(split)
+            events, non_events_sent, files_processed = data_process.extract_from_xml(split)
             files_num += files_processed
 
             #print("Number of files processed for language= ", language, " is= ", files_num, "number of events:", len(events))
@@ -567,5 +712,6 @@ if __name__ == '__main__':
             if args.task == "jmee":
                 data_process.save_jmee_json(events, language, split, pre_dir)
             else:
-                data_process.get_triggers_bio(events, language, split, pre_dir)
-                data_process.get_arguments_bio(events, language, split, pre_dir)
+                #data_process.get_triggers_bio(events, non_events_sent, language, split, pre_dir, args.use_neg_eg)
+                #data_process.get_arguments_bio(events, non_events_sent, language, split, pre_dir, args.use_neg_eg)
+                data_process.get_joint_dataset(events, non_events_sent, language, split, pre_dir, args.use_neg_eg)

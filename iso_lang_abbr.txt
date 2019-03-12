@@ -1,0 +1,15 @@
+French:fr
+Greek:gl
+Bulgarian:bg
+Swedish:sv
+German:de
+Italian:it
+Danish:da
+English:en
+Czech:cs
+Finnish:fi
+Hungarian:hu
+Spanish:es
+Chinese:zh
+Arabic:ar
+Spanish:es

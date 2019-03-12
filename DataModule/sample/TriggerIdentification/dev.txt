@@ -1,0 +1,17 @@
+Two O
+Americans O
+who O
+gave B-Life:Die
+their O
+lives O
+to O
+Operation B-Conflict:Attack
+Iraqi I-Conflict:Attack
+Freedom I-Conflict:Attack
+were O
+buried O
+at O
+Arlington O
+National O
+Cemetery O
+today O

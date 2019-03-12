@@ -24,7 +24,7 @@ if __name__ == '__main__':
         else:
             anno_vers = "adj"
         for domain in [file_.split("/")[-1] for file_ in glob.glob(inp_data_path + lang + "/*") if "Icon\r" not in file_]:
-            for file in glob.glob(inp_data_path + lang + "/" + domain + "/"+ anno_vers + "/*.apf.xml"):
+            for file in glob.glob(inp_data_path + lang + "/" + domain + "/" + anno_vers + "/*.apf.xml"):
                 file_path = ".".join("/".join(file.split("/")[-3:]).split(".")[:-2])
                 if lang not in files_dict_lang:
                     files_dict_lang.update({lang: [file_path]})

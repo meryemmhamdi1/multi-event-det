@@ -22,7 +22,7 @@ which is adapted to work primarily on ACE05 and split it into train, dev and tes
 - languages: choose the language that you would like to focus on separated by comma
 - root-dir: change the root directory of the dataset
 - data-ace-path: change the release of the data
-- method: jmee for data like the following https://github.com/lx865712528/JMEE/blob/master/ace-05-splits/sample.json or tagging to produce BIO annotation
+- method: jmee for data like the [following] (https://github.com/lx865712528/JMEE/blob/master/ace-05-splits/sample.json) or tagging to produce BIO annotation
 - pre-dir: output directory for saving the preprocessed files
 
 ### 2. Running the dataset:
